@@ -1,14 +1,26 @@
 package easy.tuto.easycalculator;
 
+import static android.content.ContentValues.TAG;
+
+import static easy.tuto.easycalculator.BuildConfig.DEBUG;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.google.android.material.button.MaterialButton;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
@@ -17,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     MaterialButton buttonC,buttonBrackOpen,buttonBrackClose;
     MaterialButton buttonDivide,buttonMultiply,buttonPlus,buttonMinus,buttonEquals;
     MaterialButton button0,button1,button2,button3,button4,button5,button6,button7,button8,button9;
-    MaterialButton buttonAC,buttonDot;
+    MaterialButton buttonAC,buttonDot,button_historyTV;
 
 
     @Override
@@ -26,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
        resultTv = findViewById(R.id.result_tv);
        solutionTv = findViewById(R.id.solution_tv);
+
 
        assignId(buttonC,R.id.button_c);
        assignId(buttonBrackOpen,R.id.button_open_bracket);
@@ -52,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
     }
 
     void assignId(MaterialButton btn,int id){
@@ -60,36 +74,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+
     @Override
     public void onClick(View view) {
-        MaterialButton button =(MaterialButton) view;
+        MaterialButton button = (MaterialButton) view;
         String buttonText = button.getText().toString();
         String dataToCalculate = solutionTv.getText().toString();
 
-        if(buttonText.equals("AC")){
-            solutionTv.setText("");
-            resultTv.setText("0");
-            return;
-        }
-        if(buttonText.equals("=")){
-            solutionTv.setText(resultTv.getText());
-            return;
-        }
-        if(buttonText.equals("C")){
-            dataToCalculate = dataToCalculate.substring(0,dataToCalculate.length()-1);
-        }else{
-            dataToCalculate = dataToCalculate+buttonText;
-        }
-        solutionTv.setText(dataToCalculate);
+        button_historyTV=findViewById(R.id.button_history);
+        Intent intent =new Intent(this,MainActivity2.class);
 
-        String finalResult = getResult(dataToCalculate);
+        String result;
+        String[] listHistory=new String[100];
 
-        if(!finalResult.equals("Err")){
-            resultTv.setText(finalResult);
+            for(int i=0;i<listHistory.length-1;i++) {
+                if(buttonText.equals("=")) {
+                    result= buttonText.equals("=") ? resultTv.getText().toString().trim() : "=" + resultTv.getText().toString().trim();
+                listHistory[i] = (dataToCalculate + buttonText + result).toString();
+            }
         }
+
+        button_historyTV.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+
+                intent.putExtra("keyResult",listHistory);
+                startActivity(intent);
+            }
+        }
+
+);
+
+            if (buttonText.equals("AC")) {
+                solutionTv.setText("");
+                resultTv.setText("0");
+                return;
+            }
+            if (buttonText.equals("=")) {
+                solutionTv.setText(resultTv.getText());
+                return;
+            }
+            if (buttonText.equals("C")) {
+                dataToCalculate = dataToCalculate.substring(0, dataToCalculate.length() - 1);
+            } else {
+                dataToCalculate = dataToCalculate + buttonText;
+            }
+            solutionTv.setText(dataToCalculate);
+
+            String finalResult = getResult(dataToCalculate);
+
+            if (!finalResult.equals("Err")) {
+                resultTv.setText(finalResult);
+            }
+
+
 
     }
-
     String getResult(String data){
         try{
             Context context  = Context.enter();
@@ -105,4 +147,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        if (DEBUG) {
+            Log.d(TAG, "onSaveInstanceState(Bundle)");
+            Log.d(TAG, ">>>> Bundle not null only");
+        }
+        CharSequence resultData = resultTv.getText();
+        outState.putCharSequence("MyResult",resultData);
+
+
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (DEBUG) {
+            Log.d(TAG, "onSaveInstanceState(Bundle)");
+            Log.d(TAG, ">>>> Bundle not null only");
+        }
+        CharSequence storeData=savedInstanceState.getCharSequence( "MyResult");
+        resultTv.setText(storeData);
+    }
 }
