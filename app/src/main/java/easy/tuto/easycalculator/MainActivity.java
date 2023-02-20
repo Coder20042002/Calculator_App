@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.util.Log;
@@ -24,7 +25,7 @@ import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-
+     String history="";
     TextView resultTv,solutionTv;
     MaterialButton buttonC,buttonBrackOpen,buttonBrackClose;
     MaterialButton buttonDivide,buttonMultiply,buttonPlus,buttonMinus,buttonEquals;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
        resultTv = findViewById(R.id.result_tv);
        solutionTv = findViewById(R.id.solution_tv);
+
 
 
        assignId(buttonC,R.id.button_c);
@@ -72,8 +74,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn = findViewById(id);
         btn.setOnClickListener(this);
     }
-
-
+//Lưu lịch sử bằng hàm onPause
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        SharedPreferences mypref=getSharedPreferences("mysave",MODE_PRIVATE);
+//        SharedPreferences.Editor myedit=mypref.edit();
+//        myedit.putString("ls",history);
+//        myedit.commit();
+//
+//    }
 
     @Override
     public void onClick(View view) {
@@ -84,23 +94,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         button_historyTV=findViewById(R.id.button_history);
         Intent intent =new Intent(this,MainActivity2.class);
 
-        String result;
-        String[] listHistory=new String[100];
 
-            for(int i=0;i<listHistory.length-1;i++) {
-                if(buttonText.equals("=")) {
-                    result= buttonText.equals("=") ? resultTv.getText().toString().trim() : "=" + resultTv.getText().toString().trim();
-                listHistory[i] = (dataToCalculate + buttonText + result).toString();
-            }
+        if(buttonText.equals("=")) {
+                history = buttonText.equals("=") ? resultTv.getText().toString().trim() : "=" + resultTv.getText().toString().trim();
+                history = (dataToCalculate + buttonText + history).toString();
+                intent.putExtra("keyResult",history);
+
+
         }
 
         button_historyTV.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-
-
-                intent.putExtra("keyResult",listHistory);
                 startActivity(intent);
             }
         }
